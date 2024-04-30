@@ -7,7 +7,11 @@ import (
 )
 
 type ConfigInst struct {
-	DatabaseURL     string        `mapstructure:"DATABASE_URL"`
+	DatabaseURL    string `mapstructure:"DATABASE_URL"`
+	SupabaseApiUrl string `mapstructure:"SUPABASE_API_URL"`
+	SupabaseApiKey string `mapstructure:"SUPABASE_API_KEY"`
+	JWTSecret      string `mapstructure:"SUPABASE_JWT_SECRET"`
+	PORT           int    `mapstructure:"PORT"`
 }
 
 var Config ConfigInst

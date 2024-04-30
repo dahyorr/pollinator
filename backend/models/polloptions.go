@@ -1,8 +1,9 @@
 package models
 
-type PollAnswer struct {
+type PollOptions struct {
 	Id     string
-	Text  string
+	Text   string
 	PollId string
+	Votes  int
 	// Votes
 }
