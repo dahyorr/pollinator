@@ -1,0 +1,3 @@
+
+ALTER TABLE poll_votes ALTER COLUMN browser_id DROP NOT NULL;
+ALTER TABLE poll_votes ALTER COLUMN user_id DROP NOT NULL;

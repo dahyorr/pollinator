@@ -1,64 +1,93 @@
 package models
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/dahyorr/pollinator/database"
+	"github.com/jmoiron/sqlx"
 )
 
-type PollVotes struct {
+type PollVote struct {
 	Id           string
-	PollId       string
-	PollOptionId string
-	UserId       string
+	PollId       string         `json:"poll_id" db:"poll_id"`
+	PollOptionId string         `json:"poll_option_id" db:"poll_option_id"`
+	UserId       sql.NullString `json:"user_id" db:"user_id"`
+	CreatedAt    time.Time      `json:"created_at" db:"created_at"`
 }
 
-func New(pollId string, pollOptionId []string, userId string) ([]*PollVotes, error) {
-	// map pollOptionId to PollVotes
-	var pollVotes []*PollVotes
+func (pv *PollVote) Save(_tx *sqlx.Tx) error {
 
-	for _, option := range pollOptionId {
-		vote := PollVotes{
-			PollId:       pollId,
-			PollOptionId: option,
-			UserId:       userId,
-		}
-		pollVotes = append(pollVotes, &vote)
+	tx := _tx
+	if tx == nil {
+		tx = database.DB.MustBegin()
+		defer func() {
+			if p := recover(); p != nil {
+				tx.Rollback()
+				panic(p)
+			}
+		}()
 	}
 
-	tx := database.DB.MustBegin()
-
-	stmt, err := tx.Prepare("INSERT INTO poll_votes (poll_id, poll_option_id, user_id) VALUES ($1, $2, $3)")
-	if err != nil {
-		tx.Rollback()
-		fmt.Println(err)
-		return nil, errors.New("failed to create vote")
-	}
-	defer stmt.Close()
-	for _, vote := range pollVotes {
-		_, err := stmt.Exec(vote.PollId, vote.PollOptionId, vote.UserId)
+	if pv.Id == "" {
+		err := tx.QueryRow("INSERT INTO poll_votes (poll_id, poll_option_id, user_id) VALUES ($1, $2, $3) RETURNING id, created_at",
+			pv.PollId, pv.PollOptionId, pv.UserId).Scan(&pv.Id, &pv.CreatedAt)
 		if err != nil {
 			tx.Rollback()
-			fmt.Println(err)
-			return nil, errors.New("failed to create vote")
+			return errors.New("failed to create poll vote")
+		}
+	} else {
+		_, err := tx.Exec("UPDATE poll_votes SET poll_option_id = $1 WHERE id = $2", pv.PollOptionId, pv.Id)
+		if err != nil {
+			tx.Rollback()
+			return errors.New("failed to update poll vote")
 		}
 	}
 
-	_, err = tx.Exec("UPDATE poll_options SET votes = votes + 1 WHERE id = $1", pollVotes[0].PollOptionId)
-	if err != nil {
-		tx.Rollback()
-		fmt.Println(err)
-		return nil, errors.New("failed to create vote")
+	if _tx == nil {
+		err := tx.Commit()
+		if err != nil {
+			return errors.New("failed to commit transaction")
+		}
+	}
+	return nil
+}
+
+
+func SavePollVotes(pollId string, pollVotes []*PollVote, _tx *sqlx.Tx) error {
+
+	tx := _tx
+	if _tx == nil {
+		tx := database.DB.MustBegin()
+		defer func() {
+			if p := recover(); p != nil {
+				tx.Rollback()
+				panic(p)
+			}
+		}()
 	}
 
-	_, err = tx.Exec("UPDATE poll SET responses = responses + 1 WHERE id = $1", pollId)
-	if err != nil {
-		tx.Rollback()
-		fmt.Println(err)
-		return nil, errors.New("failed to create vote")
+	for _, vote := range pollVotes {
+		if vote.PollId != pollId {
+			fmt.Println("Poll ids don't match")
+			return errors.New("failed to create vote")
+		}
+		vote.Save(tx)
 	}
 
-	return pollVotes, nil
+	if _tx == nil {
+		err := tx.Commit()
+		if err != nil {
+			return errors.New("failed to commit transaction")
+		}
+	}
+	return nil
+}
 
+func GetPollVotesByUserId(pollId string, uid string) ([]PollVote, error) {
+	var pvs []PollVote
+	err := database.DB.Select(&pvs, "SELECT * FROM poll_votes WHERE poll_id = $1 AND user_id = $2 ", pollId, uid)
+	return pvs, err
 }

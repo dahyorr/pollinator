@@ -4,18 +4,22 @@ import { FC, PropsWithChildren, createContext, useEffect, useState } from "react
 
 interface SessionContextType {
   session: Session | null
+  loading: boolean
   refreshSession: () => void
+  refetchSession: () => void
 }
 
 const SessionContext = createContext<SessionContextType>({
   session: null,
+  loading: true,
   refreshSession: () => { },
+  refetchSession: () => { },
 })
 
 export const SessionProvider: FC<PropsWithChildren> = ({ children }) => {
+  const [loading, setLoading] = useState(true)
   const [session, setSession] = useState<Session | null>(null)
 
-  console.log(session)
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       console.log(event, session)
@@ -26,9 +30,11 @@ export const SessionProvider: FC<PropsWithChildren> = ({ children }) => {
         // case 'PASSWORD_RECOVERY':
         case 'USER_UPDATED':
         case 'SIGNED_IN':
+          setLoading(false)
           setSession(session)
           break
         case 'SIGNED_OUT':
+          setLoading(false)
           setSession(null)
           break
       }
@@ -43,14 +49,24 @@ export const SessionProvider: FC<PropsWithChildren> = ({ children }) => {
   // }
 
   const refreshSession = async () => {
+    setLoading(true)
     const { data: { session } } = await supabase.auth.refreshSession()
+    setLoading(false)
     // setSession(session)
+  }
+
+  const refetchSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    setSession(session)
+
   }
 
   return (
     <SessionContext.Provider value={{
       session,
-      refreshSession
+      refreshSession,
+      refetchSession,
+      loading
     }}>
       {children}
     </SessionContext.Provider>

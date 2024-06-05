@@ -1,6 +1,6 @@
 "use client"
 import NewPollModal from "@/components/NewPollModal";
-import PollCard from "@/components/PollCard";
+import Polls from "@/components/Polls";
 import { Button } from "@nextui-org/button";
 import { useDisclosure } from "@nextui-org/modal";
 
@@ -14,13 +14,8 @@ export default function Home() {
         <p className="font-bold text-2xl text-left my-4">Recent Polls</p>
         <Button size="md" color="primary" className="" onClick={onOpen}>New Poll</Button>
       </div>
-      <div className="grid grid-cols-3 gap-4">
-        <PollCard />
-        <PollCard />
-        <PollCard />
-        <PollCard />
-        <PollCard />
-      </div>
+
+      <Polls/>
 
       <NewPollModal isOpen={isOpen} onOpenChange={onOpenChange} />
 

@@ -10,14 +10,12 @@ interface UserMenuProps {
 
 const UserMenu: FC<UserMenuProps> = ({ user }) => {
   const userMetadata = user?.user_metadata
-  const email = user?.email
 
   const onAction = (key: Key) => {
     if (key === "logout") {
       signOut()
     }
   }
-
   return (
     <Dropdown placement="bottom-end">
       <DropdownTrigger>

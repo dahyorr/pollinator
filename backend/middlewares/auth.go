@@ -2,14 +2,27 @@ package middlewares
 
 import (
 	"log"
+	"strings"
 
 	"github.com/dahyorr/pollinator/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
-func AuthMiddleware(hmacSecret string) fiber.Handler {
+func AuthMiddleware(hmacSecret string, allowUnauthorized bool) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		token := ctx.Get("Authorization")
+		authToken := ctx.Get("Authorization")
+		print(allowUnauthorized)
+
+		if authToken == "" && !allowUnauthorized {
+			return fiber.ErrUnauthorized
+		} else if authToken == "" && allowUnauthorized {
+			return ctx.Next()
+		}
+		splitToken := strings.Split(authToken, "Bearer ")
+		if len(splitToken) != 2 {
+			return fiber.ErrUnauthorized
+		}
+		token := splitToken[1]
 		if token == "" {
 			return fiber.ErrUnauthorized
 		}
@@ -18,7 +31,7 @@ func AuthMiddleware(hmacSecret string) fiber.Handler {
 			log.Printf("Error parsing token: %s", err)
 			return fiber.ErrUnauthorized
 		}
-
+		print(uid)
 		ctx.Locals("uid", uid)
 		ctx.Locals("email", email)
 
