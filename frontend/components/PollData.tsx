@@ -1,6 +1,6 @@
 "use client"
 import { supabase } from '@/supabase/client'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams, useSearchParams } from 'next/navigation'
 import PollCard from './PollCard'
 import PollVoteCard from './PollCard/PollVoteCard'
@@ -64,24 +64,48 @@ const PollData = () => {
     }
   }, [isError, error])
 
+  const queryClient = useQueryClient()
+
+  const voteEventProcessor = (event: string, payload: any) => {
+    switch (event) {
+      case 'vote_increment':
+        queryClient.setQueryData(['poll', payload.poll_id], (data: Poll) => {
+          const updatedOptions = data.poll_options.map((option) => {
+            if (option.id === payload.poll_option_id) {
+              return {
+                ...option,
+                votes: option.votes + 1
+              }
+            }
+            return option
+          })
+          const newData = {
+            ...data,
+            poll_options: updatedOptions
+          }
+          console.log(newData)
+          return newData
+        })
+        break;
+      default:
+        break;
+    }
+  }
+
   useEffect(() => {
-    if ( data && pollOptionsIds) {
-      console.log('subscribing to poll votes updates', pollOptionsIds)
-      const changes = supabase
-        .channel('poll-votes-updates')
+    if (data && pollOptionsIds) {
+      const channel = supabase.channel(`poll-votes-updates-${pollId}`)
+      channel
         .on(
-          'postgres_changes',
+          'broadcast',
           {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'poll_options',
-            // filter: `id=in.(${pollOptionsIds?.join(', ')})`,
+            event: 'vote_increment',
           },
-          (payload) => console.log(payload)
+          ({ event, payload }) => voteEventProcessor(event, payload)
         )
         .subscribe()
       return () => {
-        changes.unsubscribe()
+        channel.unsubscribe()
       }
     }
   }, [allowVoting, data])

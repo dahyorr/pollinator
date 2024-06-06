@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 
 	"github.com/dahyorr/pollinator/database"
 	"github.com/dahyorr/pollinator/models"
 	"github.com/dahyorr/pollinator/utils"
+	"github.com/dahyorr/pollinator/utils/supabase"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -110,6 +112,25 @@ func CreateVote(c *fiber.Ctx) error {
 		return errors.New("failed to commit transaction")
 	}
 
+	var messages []supabase.RealtimeMessage
+
+	if body.PollOptionId != "" {
+		messages = append(messages, *supabase.NewRealtimeMessage(
+			fmt.Sprintf("poll-votes-updates-%s", body.PollId),
+			"vote_increment",
+			json.RawMessage(fmt.Sprintf(`{"poll_id": "%s","poll_option_id": "%s"}`, body.PollId, body.PollOptionId)),
+		))
+	} else {
+		for _, optionId := range body.PollOptionIds {
+			messages = append(messages, *supabase.NewRealtimeMessage(
+				fmt.Sprintf("poll-votes-updates-%s", body.PollId),
+				"vote_increment",
+				json.RawMessage(fmt.Sprintf(`{"poll_id": "%s","poll_option_id": "%s"}`, body.PollId, optionId)),
+			))
+		}
+	}
+
+	supabase.BroadcastMessages(messages)
 	return c.JSON(fiber.Map{
 		"message": "Vote created successfully",
 		"vote":    result,
