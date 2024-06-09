@@ -18,6 +18,7 @@ var Config ConfigInst
 
 func InitConfig() *ConfigInst {
 	viper.SetConfigFile(".env")
+	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
 	if err != nil {
 		log.Fatal("Can't find the file .env : ", err)

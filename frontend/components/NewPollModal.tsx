@@ -15,6 +15,7 @@ import UiDatePicker from './UiDatePicker';
 import { useSession } from '@/hooks/useSession';
 import { supabase } from '@/supabase/client';
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { API_URL } from '@/config';
 
 
 interface NewPollModalProps {
@@ -110,7 +111,7 @@ const NewPollModal: FC<NewPollModalProps> = ({ isOpen, onOpenChange, poll }) => 
       end_date: data.duration === 'custom' ? data.endDate : undefined,
       duration: ['none', 'custom'].includes(data.duration) ? undefined : Number(data.duration)
     }
-    const resp = await fetch('http://localhost:8000/api/poll', {
+    const resp = await fetch(`${API_URL}/poll`, {
       method: 'POST',
       body: JSON.stringify(payload),
       headers: {
@@ -139,7 +140,7 @@ const NewPollModal: FC<NewPollModalProps> = ({ isOpen, onOpenChange, poll }) => 
       require_auth: data.requireAuth,
       end_date: data.endDate,
     }
-    const resp = await fetch(`http://localhost:8000/api/poll/${poll.id}`, {
+    const resp = await fetch(`${API_URL}/poll/${poll.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

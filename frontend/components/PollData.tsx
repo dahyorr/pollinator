@@ -8,6 +8,7 @@ import { useSession } from '@/hooks/useSession'
 import CircularLoader from './CircularLoader'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
+import { API_URL } from '@/config'
 
 const PollData = () => {
   const { session } = useSession()
@@ -36,7 +37,7 @@ const PollData = () => {
       if (session) {
         headers.append('Authorization', `Bearer ${session?.access_token}`)
       }
-      const res = await fetch(`http://localhost:8000/api/poll/${pollId}/votes`, {
+      const res = await fetch(`${API_URL}/poll/${pollId}/votes`, {
         headers,
         signal
       })
@@ -117,7 +118,7 @@ const PollData = () => {
 
   if (data) return (
     <div className=' py-9'>
-        {allowVoting && !forceView ? (<PollVoteCard poll={data} />) : (<PollCard poll={data} owner={isOwner} standalone />)}
+      {allowVoting && !forceView ? (<PollVoteCard poll={data} />) : (<PollCard poll={data} owner={isOwner} standalone />)}
     </div>
   )
   else return null

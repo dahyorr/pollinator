@@ -9,6 +9,7 @@ import { useSession } from "@/hooks/useSession";
 import { supabase } from "@/supabase/client";
 import TurnstileModal from "../TurnstileModal";
 import { useDisclosure } from "@nextui-org/modal";
+import { API_URL } from "@/config";
 
 interface IProps {
   poll: Poll
@@ -35,7 +36,7 @@ const PollVoteCard: FC<IProps> = ({ poll }) => {
     if (session) {
       headers.append('Authorization', `Bearer ${session?.access_token}`)
     }
-    const response = await fetch('http://localhost:8000/api/vote', {
+    const response = await fetch(`${API_URL}/vote`, {
       method: 'POST',
       body: JSON.stringify(payload),
       headers,
