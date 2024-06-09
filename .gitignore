@@ -47,3 +47,4 @@ node_modules
 .postgres
 frontend/.idea
 backend/.idea
+config-development.yml

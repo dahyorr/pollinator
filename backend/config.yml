@@ -1,0 +1,5 @@
+DATABASE_URL: changeme
+SUPABASE_API_URL: https://ceagenthtzlvsxrhyrmi.supabase.co
+SUPABASE_API_KEY: changeme
+SUPABASE_JWT_SECRET: changeme
+PORT: 8000

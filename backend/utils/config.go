@@ -2,6 +2,7 @@ package utils
 
 import (
 	"log"
+	"os"
 
 	"github.com/spf13/viper"
 )
@@ -17,7 +18,13 @@ type ConfigInst struct {
 var Config ConfigInst
 
 func InitConfig() *ConfigInst {
-	viper.SetConfigFile(".env")
+if(os.Getenv("ENV") == "production") {
+	viper.SetConfigName("config")
+} else {
+	viper.SetConfigName("config-development")
+}
+	viper.SetConfigName("config-development")
+	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
 	if err != nil {
