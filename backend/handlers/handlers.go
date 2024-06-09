@@ -7,6 +7,9 @@ import (
 )
 
 func RegisterHandlers(app *fiber.App, config *utils.ConfigInst) {
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.SendStatus(fiber.StatusOK)
+	})
 
 	restrictedRoutes := app.Group("")
 	restrictedRoutes.Use(middlewares.AuthMiddleware(config.JWTSecret, true))
