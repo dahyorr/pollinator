@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -23,14 +22,11 @@ func InitConfig() *ConfigInst {
 	if env == "" {
 		env = "development"
 	}
-	fmt.Println("RW:", os.Getenv("ENV"))
-	fmt.Println("Environment:", env)
 	if env == "production" {
 		viper.SetConfigName("config")
 	} else {
 		viper.SetConfigName("config-development")
 	}
-	viper.SetConfigName("config-development")
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
