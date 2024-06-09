@@ -22,6 +22,8 @@ RUN apk -U upgrade \
     && apk add --no-cache dumb-init ca-certificates \
     && chmod +x /app/main
 
+RUN touch .env
+
 # Exposes port 3000 because our program listens on that port
 EXPOSE 8000
 
