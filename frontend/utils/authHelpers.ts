@@ -5,20 +5,26 @@ export const signInWithEmail = async (email: string) => {
     email,
     options: {
       shouldCreateUser: true,
-      emailRedirectTo: "http://localhost:3000"
+      emailRedirectTo: window.location.origin
     }
   })
 }
 
 export const signInWithGoogle = async () => {
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google"
+    provider: "google",
+    options: {
+      redirectTo: window.location.origin
+    }
   })
 }
 
 export const signInWithGithub = async () => {
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "github"
+    provider: "github",
+    options: {
+      redirectTo: window.location.origin
+    }
   })
 }
 
