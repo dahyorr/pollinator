@@ -13,9 +13,10 @@ import (
 
 func main() {
 	// Your code here
+	fmt.Println("Starting server...")
 	config := utils.InitConfig()
 	dbErr := database.Init(config)
-
+	fmt.Println(config.PORT, config.DatabaseURL)
 	if dbErr != nil {
 		panic(dbErr)
 	}
