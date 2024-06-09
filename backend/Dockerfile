@@ -16,6 +16,7 @@ FROM alpine:latest as release
 WORKDIR /app
 
 COPY --from=build /code/main .
+COPY ./config.yml .
 
 # Add packages
 RUN apk -U upgrade \
