@@ -7,20 +7,28 @@ import { SlOptionsVertical } from "react-icons/sl";
 
 interface PollDropdownMenuProps {
   onVisitPoll: () => void;
+  onEditPoll: () => void;
   status: 'open' | 'closed'
+  disableVisit?: boolean
 }
 
-const PollDropdownMenu: FC<PollDropdownMenuProps> = ({ status, onVisitPoll }) => {
+const PollDropdownMenu: FC<PollDropdownMenuProps> = ({ status, onVisitPoll, onEditPoll, disableVisit }) => {
 
   const onAction = (key: Key) => {
     switch (key) {
       case "view":
         onVisitPoll()
         break;
+      case "edit":
+        onEditPoll()
+        break;
+      case "close":
+        break;
       default:
         break;
     }
   }
+
   return (
     <Dropdown backdrop="opaque">
       <DropdownTrigger>
@@ -33,9 +41,9 @@ const PollDropdownMenu: FC<PollDropdownMenuProps> = ({ status, onVisitPoll }) =>
         </Button>
       </DropdownTrigger>
       <DropdownMenu variant="faded" aria-label="Poll Actions" disabledKeys={status === "open" ? [] : ["edit", "delete"]} onAction={onAction}>
-        <DropdownItem key="view">View</DropdownItem>
-        <DropdownItem key="edit">Edit Poll</DropdownItem>
-        <DropdownItem key="delete" className="text-danger" color="danger">
+        <DropdownItem hidden={disableVisit} key="view">View</DropdownItem>
+        <DropdownItem hidden={status === "closed"} key="edit">Edit Poll</DropdownItem>
+        <DropdownItem key="close" className="text-danger" color="danger">
           Close Poll
         </DropdownItem>
       </DropdownMenu>

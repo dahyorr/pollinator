@@ -5,7 +5,7 @@ import { Input } from '@nextui-org/input';
 import { Checkbox } from '@nextui-org/checkbox';
 import { Select, SelectItem } from '@nextui-org/select';
 import dayjs from 'dayjs';
-import { CalendarDateTime, ZonedDateTime, getLocalTimeZone, now, parseAbsoluteToLocal, parseZonedDateTime } from '@internationalized/date';
+import { CalendarDateTime, ZonedDateTime, fromDate, getLocalTimeZone, now, parseAbsoluteToLocal, parseZonedDateTime } from '@internationalized/date';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -20,7 +20,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 interface NewPollModalProps {
   isOpen: boolean
   onOpenChange: (isOpen: boolean) => void
-
+  poll?: Poll
 }
 
 const pollDurations = [
@@ -46,7 +46,7 @@ interface FormInputs {
   duration: number | "custom" | "none"
   endDate?: Date
 }
-const schema = yup.object().shape({
+const getSchema = (edit: boolean) => yup.object().shape({
   question: yup.string().required().label("Question"),
   options: yup.array().of(yup.string().required('Required')).min(2).label("Options").required(),
   allowMultipleChoices: yup.boolean().default(false),
@@ -54,14 +54,17 @@ const schema = yup.object().shape({
   duration: yup.mixed<"none" | "custom" | number>().required().label('Duration'),
   endDate: yup.date().when('duration', {
     is: "custom",
-    then: schema => schema.label('End Date').required("Required")
-  })
+    then: schema => {
+      return edit ? schema : schema.required("Required")
+    }
+  }).label('End Date')
 
 })
 
-const NewPollModal: FC<NewPollModalProps> = ({ isOpen, onOpenChange }) => {
+const NewPollModal: FC<NewPollModalProps> = ({ isOpen, onOpenChange, poll }) => {
   const { session } = useSession()
   const queryClient = useQueryClient()
+  const edit = !!poll
 
   const {
     register,
@@ -71,12 +74,19 @@ const NewPollModal: FC<NewPollModalProps> = ({ isOpen, onOpenChange }) => {
     reset,
     formState: { isSubmitting, errors, touchedFields }
   } = useForm<FormInputs>({
-    defaultValues: {
+    defaultValues: !!poll ? {
+      options: poll.poll_options.map(po => po.value) || ['', ''],
+      question: poll.question || '',
+      allowMultipleChoices: poll.multiple_choice || false,
+      // requireAuth: poll.require_auth || false,
+      endDate: poll.end_date ? new Date(poll.end_date) : undefined,
+      duration: "custom"
+    } : {
       options: ['', ''],
       allowMultipleChoices: false,
       requireAuth: false,
     },
-    resolver: yupResolver(schema)
+    resolver: yupResolver(getSchema(edit))
   })
 
   const options = watch('options')
@@ -117,20 +127,54 @@ const NewPollModal: FC<NewPollModalProps> = ({ isOpen, onOpenChange }) => {
       const data = await resp.json()
       throw new Error(data.message || data.error || 'Failed to create poll')
     }
-
   }
 
+  const UpdatePollApi = async (data: any) => {
+    if (!poll) return;
+    const payload = {
+      id: poll.id,
+      question: data.question,
+      // options: data.options,
+      multiple_choice: data.allowMultipleChoices,
+      require_auth: data.requireAuth,
+      end_date: data.endDate,
+    }
+    const resp = await fetch(`http://localhost:8000/api/poll/${poll.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        "Authorization": `Bearer ${session?.access_token}`
+      },
+      body: JSON.stringify(payload)
+    })
+    if (resp.ok) {
+      toast.success('Poll updated successfully')
+      onOpenChange(isOpen)
+      reset()
+    }
+    else {
+      const data = await resp.json()
+      throw new Error(data.message || data.error || 'Failed to update poll')
+    }
+  }
+
+
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: CreatePollApi,
+    mutationFn: edit ? UpdatePollApi : CreatePollApi,
     onError: (error) => toast.error(error.message),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['polls'] })
+      if (edit) {
+        await queryClient.invalidateQueries({ queryKey: ['poll', poll.id] })
+      }
+      else {
+        await queryClient.invalidateQueries({ queryKey: ['polls'] })
+      }
     }
   })
 
   const onSubmit = (data: FormInputs) => mutateAsync(data)
 
-
+  console.log(errors)
   return (
     <Modal
       size={'lg'}
@@ -140,7 +184,7 @@ const NewPollModal: FC<NewPollModalProps> = ({ isOpen, onOpenChange }) => {
       <ModalContent>
         {(onClose) => (
           <>
-            <ModalHeader className="flex flex-col gap-1">New Poll</ModalHeader>
+            <ModalHeader className="flex flex-col gap-1">{edit ? "Update" : "New"} Poll</ModalHeader>
             <ModalBody>
               <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
                 <div className="flex flex-col gap-4">
@@ -164,6 +208,7 @@ const NewPollModal: FC<NewPollModalProps> = ({ isOpen, onOpenChange }) => {
                         label={`Option ${i + 1}`}
                         size="sm"
                         {...register(`options.${i}`, { required: true })}
+                        defaultValue={o}
                         errorMessage={errors[`options`]?.[i]?.message as string}
                         isInvalid={!!errors[`options`]?.[i]}
                         endContent={
@@ -198,7 +243,7 @@ const NewPollModal: FC<NewPollModalProps> = ({ isOpen, onOpenChange }) => {
                       isInvalid={!!errors['requireAuth']}
                     >Require Authentication</Checkbox>
 
-                    <Select
+                    {!edit && (<Select
                       label="Duration"
                       size="sm"
                       placeholder="Select duration"
@@ -211,13 +256,14 @@ const NewPollModal: FC<NewPollModalProps> = ({ isOpen, onOpenChange }) => {
                           {option.label}
                         </SelectItem>
                       ))}
-                    </Select>
+                    </Select>)}
 
-                    {duration === 'custom' && (
+                    {(duration === 'custom' || edit) && (
                       <UiDatePicker
                         register={register}
                         fieldKey="endDate"
                         minValue={now(getLocalTimeZone())}
+                        defaultValue={poll && poll.end_date ? fromDate(new Date(poll.end_date), getLocalTimeZone()) : undefined}
                         label="End Date"
                         errorMessage={errors['endDate']?.message as string}
                         isInvalid={!!errors['endDate']}
@@ -230,7 +276,7 @@ const NewPollModal: FC<NewPollModalProps> = ({ isOpen, onOpenChange }) => {
                 </div>
 
                 <Button type="submit" className="w-full" color="primary" isLoading={isSubmitting}>
-                  Create Poll
+                  {edit ? "Update" : "Create"} Poll
                 </Button>
               </form>
 

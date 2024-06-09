@@ -98,13 +98,13 @@ func CreateVote(c *fiber.Ctx) error {
 		}
 	}
 
-	err = poll.IncrementPollResponse(1, tx)
-	if err != nil {
-		return &fiber.Error{
-			Code:    fiber.StatusInternalServerError,
-			Message: "Failed to increment poll response",
-		}
-	}
+	// err = poll.IncrementPollResponse(1, tx)
+	// if err != nil {
+	// 	return &fiber.Error{
+	// 		Code:    fiber.StatusInternalServerError,
+	// 		Message: "Failed to increment poll response",
+	// 	}
+	// }
 
 	err = tx.Commit()
 	if err != nil {

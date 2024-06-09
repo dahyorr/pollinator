@@ -81,6 +81,7 @@ const PollData = () => {
           })
           const newData = {
             ...data,
+            responses: data.responses + 1,
             poll_options: updatedOptions
           }
           console.log(newData)
@@ -115,8 +116,8 @@ const PollData = () => {
   }
 
   if (data) return (
-    <div className='flex justify-center py-9'>
-      {allowVoting && !forceView ? (<PollVoteCard poll={data} />) : (<PollCard poll={data} owner={isOwner} />)}
+    <div className=' py-9'>
+        {allowVoting && !forceView ? (<PollVoteCard poll={data} />) : (<PollCard poll={data} owner={isOwner} standalone />)}
     </div>
   )
   else return null

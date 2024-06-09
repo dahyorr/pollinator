@@ -8,21 +8,29 @@ import { FC } from "react";
 import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
 import relativeTime from 'dayjs/plugin/relativeTime'
+import { useQueryClient } from "@tanstack/react-query";
+import { useDisclosure } from "@nextui-org/modal";
+import NewPollModal from "../NewPollModal";
 dayjs.extend(relativeTime)
 
 interface IProps {
   poll: Poll
   owner?: boolean
+  standalone?: boolean
 }
 
-const PollCard: FC<IProps> = ({ poll, owner }) => {
+const PollCard: FC<IProps> = ({ poll, owner, standalone }) => {
   const router = useRouter()
+  const queryClient = useQueryClient()
+  const pollModalDisclosure = useDisclosure()
+
   const onVisitPoll = () => {
     router.push(`/${poll.id}`)
   }
 
+
   return (
-    <Card className="max-w-[400px] lg:max-w-[500px]">
+    <Card className="mx-auto max-w-[400px] lg:max-w-[500px]">
       <CardHeader className="flex gap-3 justify-between">
         <div className="flex flex-col">
           <p className="text-md font-semibold">{poll.question}</p>
@@ -42,8 +50,16 @@ const PollCard: FC<IProps> = ({ poll, owner }) => {
       <Divider />
       {owner && (<CardFooter className="flex gap-3 justify-between">
         <p className="text-small text-default-500">{poll.responses} responses</p>
-        <PollDropdownMenu status="open" onVisitPoll={onVisitPoll} />
+        <PollDropdownMenu
+          status="open"
+          onVisitPoll={onVisitPoll}
+          onEditPoll={() => pollModalDisclosure.onOpen()}
+          disableVisit={standalone}
+        />
       </CardFooter>)}
+
+      {pollModalDisclosure.isOpen && (<NewPollModal isOpen={pollModalDisclosure.isOpen} onOpenChange={pollModalDisclosure.onOpenChange} poll={poll} />)}
+
     </Card>
   )
 }

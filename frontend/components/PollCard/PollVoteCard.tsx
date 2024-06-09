@@ -32,7 +32,7 @@ const PollVoteCard: FC<IProps> = ({ poll }) => {
     const headers = new Headers({
       'Content-Type': 'application/json'
     })
-    if(session){
+    if (session) {
       headers.append('Authorization', `Bearer ${session?.access_token}`)
     }
     const response = await fetch('http://localhost:8000/api/vote', {
@@ -77,7 +77,7 @@ const PollVoteCard: FC<IProps> = ({ poll }) => {
   // }
 
   return (
-    <Card as="form" onSubmit={onVote} className="w-full max-w-[400px] lg:max-w-[500px]" >
+    <Card as="form" onSubmit={onVote} className="w-full mx-auto max-w-[400px] lg:max-w-[500px]" >
       <CardHeader className="flex gap-3 justify-between">
         <div className="flex flex-col">
           <p className="text-md font-semibold">{poll.question}</p>
