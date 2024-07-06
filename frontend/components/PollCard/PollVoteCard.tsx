@@ -6,9 +6,7 @@ import { Button } from "@nextui-org/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useSession } from "@/hooks/useSession";
-import { supabase } from "@/supabase/client";
-import TurnstileModal from "../TurnstileModal";
-import { useDisclosure } from "@nextui-org/modal";
+
 import { API_URL } from "@/config";
 import { usePathname, useRouter } from "next/navigation";
 
