@@ -10,6 +10,7 @@ import { supabase } from "@/supabase/client";
 import TurnstileModal from "../TurnstileModal";
 import { useDisclosure } from "@nextui-org/modal";
 import { API_URL } from "@/config";
+import { usePathname, useRouter } from "next/navigation";
 
 interface IProps {
   poll: Poll
@@ -26,6 +27,8 @@ const PollVoteCard: FC<IProps> = ({ poll }) => {
   const [selected, setSelected] = useState<string[]>([])
   const queryClient = useQueryClient()
   const { session, refetchSession } = useSession()
+  const router = useRouter()
+  const pathname = usePathname()
 
   // const turnstileDisclosure = useDisclosure()
 
@@ -70,7 +73,7 @@ const PollVoteCard: FC<IProps> = ({ poll }) => {
       poll_option: selected.length < 2 ? selected[0] : undefined
     }
     mutate(payload)
-
+    router.push(`${pathname}?view=1`)
   }
 
   // const onChallengeCompleted = (token: string) => {

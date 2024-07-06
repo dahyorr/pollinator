@@ -33,15 +33,23 @@ func CreateVote(c *fiber.Ctx) error {
 	}
 
 	uid, userOk := c.Locals("uid").(string)
-	if !userOk {
+
+	// if !userOk  {
+	// 	return &fiber.Error{
+	// 		Code:    fiber.StatusInternalServerError,
+	// 		Message: "Failed to check identity",
+	// 	}
+	// }
+
+	poll, err := models.GetPollById(body.PollId, true)
+
+	if poll.RequireAuth && (uid == "" || !userOk) {
 		return &fiber.Error{
-			Code:    fiber.StatusInternalServerError,
-			Message: "Failed to check identity",
+			Code:    fiber.StatusUnauthorized,
+			Message: "Unauthorized to vote",
 		}
 	}
 
-	poll, err := models.GetPollById(body.PollId, true)
-	fmt.Println(body.PollId, err)
 	if err != nil || poll.Status == "closed" {
 		return &fiber.Error{
 			Code:    fiber.StatusBadRequest,

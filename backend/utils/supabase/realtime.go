@@ -65,11 +65,10 @@ func BroadcastMessages(messages []RealtimeMessage) *http.Response {
 		fmt.Println("Failed to broadcast message")
 	}
 	defer response.Body.Close()
-	bodyBytes, err := io.ReadAll(response.Body)
+	_, err = io.ReadAll(response.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
-	bodyString := string(bodyBytes)
-	fmt.Println(string(body), bodyString)
+
 	return response
 }
