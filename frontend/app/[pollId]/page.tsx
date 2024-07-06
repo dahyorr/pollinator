@@ -1,9 +1,6 @@
 'use server'
 
 import PollData from "@/components/PollData"
-import { nanoid } from "nanoid"
-import { cookies } from "next/headers"
-
 
 const PollPage = () => {
   return (

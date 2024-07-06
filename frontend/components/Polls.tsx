@@ -33,17 +33,20 @@ const Polls = () => {
     }
   }, [isError, error])
 
+  if(!session){
+    return <p className="text-center text-lg">Please sign in to view your polls</p>
+  }
+
   if (isLoading) return (
     <CircularLoader />
   )
-
 
   if (!data) {
     return null
   }
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-4">
       {data.map(p => (<PollCard key={p.id} poll={p} owner={p.user_id === session?.user.id} />))}
     </div>
   )

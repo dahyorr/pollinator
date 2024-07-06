@@ -11,6 +11,9 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 import { useQueryClient } from "@tanstack/react-query";
 import { useDisclosure } from "@nextui-org/modal";
 import NewPollModal from "../NewPollModal";
+import { API_URL } from "@/config";
+import { useSession } from "@/hooks/useSession";
+import { toast } from "sonner";
 dayjs.extend(relativeTime)
 
 interface IProps {
@@ -23,14 +26,41 @@ const PollCard: FC<IProps> = ({ poll, owner, standalone }) => {
   const router = useRouter()
   const queryClient = useQueryClient()
   const pollModalDisclosure = useDisclosure()
+  const { session } = useSession()
 
   const onVisitPoll = () => {
-    router.push(`/${poll.id}`)
+    router.push(`/${poll.id}?view=1`)
+  }
+
+  const onUpdatePollStatus = async (status: PollStatus) => {
+    const payload = {
+      poll_id: poll.id,
+      status
+    }
+    const headers = new Headers({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session?.access_token}`
+    })
+    const response = await fetch(`${API_URL}/vote/updateStatus`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers,
+    })
+    if (!response.ok) {
+      const data = await response.json()
+      const message = data.message || data.error || 'Failed to update poll status'
+      toast.error(message)
+    }
+    else {
+      await queryClient.invalidateQueries({ queryKey: ['polls'] })
+      await queryClient.invalidateQueries({ queryKey: ['poll', poll.id] })
+      toast.success('Poll status updated successfully')
+    }
   }
 
 
   return (
-    <Card className="mx-auto max-w-[400px] lg:max-w-[500px]">
+    <Card className="mx-auto max-w-[400px] lg:max-w-[500px] w-full">
       <CardHeader className="flex gap-3 justify-between">
         <div className="flex flex-col">
           <p className="text-md font-semibold">{poll.question}</p>
@@ -51,9 +81,10 @@ const PollCard: FC<IProps> = ({ poll, owner, standalone }) => {
       {owner && (<CardFooter className="flex gap-3 justify-between">
         <p className="text-small text-default-500">{poll.responses} responses</p>
         <PollDropdownMenu
-          status="open"
+          status={poll.status}
           onVisitPoll={onVisitPoll}
           onEditPoll={() => pollModalDisclosure.onOpen()}
+          onUpdatePollStatus={onUpdatePollStatus}
           disableVisit={standalone}
         />
       </CardFooter>)}

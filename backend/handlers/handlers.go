@@ -15,6 +15,7 @@ func RegisterHandlers(app *fiber.App, config *utils.ConfigInst) {
 	restrictedRoutes.Use(middlewares.AuthMiddleware(config.JWTSecret, true))
 	restrictedRoutes.Post("/api/poll", CreatePoll)
 	restrictedRoutes.Post("/api/vote", CreateVote)
+	restrictedRoutes.Post("/api/vote/updateStatus", UpdatePollStatus)
 	restrictedRoutes.Get("/api/poll/:poll_id/votes", GetVotes)
 	restrictedRoutes.Put("/api/poll/:poll_id", UpdatePoll)
 

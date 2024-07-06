@@ -4,7 +4,10 @@ import { Divider } from "@nextui-org/divider";
 import { Input } from "@nextui-org/input";
 import { Modal, ModalContent, ModalHeader, ModalBody } from "@nextui-org/modal";
 import { FC } from 'react'
-import {HiMailOpen } from "react-icons/hi";
+import { HiMailOpen } from "react-icons/hi";
+import { Auth } from '@supabase/auth-ui-react'
+import { supabase } from "@/supabase/client";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
 
 interface LoginModalProps {
   isOpen: boolean
@@ -27,7 +30,25 @@ const LoginModal: FC<LoginModalProps> = ({ isOpen, onOpenChange }) => {
               <p className="font-light text-sm">Sign in and start creating your polls</p>
             </ModalHeader>
             <ModalBody>
-              <form className="flex flex-col gap-2">
+              <Auth
+                supabaseClient={supabase}
+                appearance={{
+                  theme: ThemeSupa,
+                  style: {
+
+                  },
+                  variables: {
+                    default: {
+                      colors: {
+                        brand: "#006FEE",
+                        brandAccent: `gray`,
+                      }
+                    }
+                  }
+                }}
+                providers={['google', 'github']}
+              />
+              {/* <form className="flex flex-col gap-2">
                 <Input
                   autoFocus
                   endContent={
@@ -51,7 +72,7 @@ const LoginModal: FC<LoginModalProps> = ({ isOpen, onOpenChange }) => {
                 <Button color="primary" className="w-full" onClick={signInWithGithub}>
                   Sign in with Github
                 </Button>
-              </div>
+              </div> */}
             </ModalBody>
             {/* <ModalFooter>
               <Button color="danger" variant="flat" onPress={onClose}>

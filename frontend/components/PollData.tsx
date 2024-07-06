@@ -53,9 +53,9 @@ const PollData = () => {
   })
 
   const hasVoted = previousVotes && previousVotes?.length > 0
-
+  const isOpen = data?.status === 'open'
   const isOwner = data?.user_id === session?.user.id
-  // const allowVoting = !isOwner && !hasVoted && data?.status === 'open'
+  // const allowVoting = !isOwner && !hasVoted && isOpen && !forceView
   const allowVoting = true
   const pollOptionsIds = data?.poll_options.map((option) => option.id)
 
@@ -114,6 +114,12 @@ const PollData = () => {
 
   if (isLoading || loadingPreviousVotes) {
     return <CircularLoader />
+  }
+
+  if (data?.require_autth && !session  && allowVoting) {
+    return (<div className='py-9'>
+      <p className="text-center text-lg">This poll requires authentication to vote</p>
+    </div>)
   }
 
   if (data) return (

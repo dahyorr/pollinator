@@ -7,6 +7,7 @@ import LoginModal from "../LoginModal"
 import { useSession } from "@/hooks/useSession"
 import UserMenu from "./UserMenu"
 import { CircularProgress } from "@nextui-org/progress"
+import Link from "next/link"
 
 const HeaderNavbar = () => {
   const { isOpen, onOpenChange, onOpen } = useDisclosure()
@@ -16,7 +17,9 @@ const HeaderNavbar = () => {
   return (
     <Navbar>
       <NavbarBrand>
-        <p className="font-bold text-inherit">POLLINATOR</p>
+        <Link href="/">
+          <p className="font-bold text-inherit">POLLINATOR</p>
+        </Link>
       </NavbarBrand>
       <NavbarContent justify="end">
         {/* <NavbarItem className="hidden lg:flex">
