@@ -18,6 +18,7 @@ const Polls = () => {
       const { data } = await supabase
         .from('poll')
         .select('*, poll_options(id, value, votes)')
+        .order("status", { ascending: false })
         .order('created_at', { ascending: false })
         .eq('user_id', session?.user.id)
         .range(0, 19)
@@ -33,7 +34,7 @@ const Polls = () => {
     }
   }, [isError, error])
 
-  if(!session){
+  if (!session) {
     return <p className="text-center text-lg">Please sign in to view your polls</p>
   }
 

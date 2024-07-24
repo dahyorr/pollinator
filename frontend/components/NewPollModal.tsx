@@ -239,10 +239,10 @@ const NewPollModal: FC<NewPollModalProps> = ({ isOpen, onOpenChange, poll }) => 
                       {...register("allowMultipleChoices")}
                       isInvalid={!!errors['allowMultipleChoices']}
                     >Allow multiple choices</Checkbox>
-                    <Checkbox
+                    {/* <Checkbox
                       {...register("requireAuth")}
                       isInvalid={!!errors['requireAuth']}
-                    >Require Authentication</Checkbox>
+                    >Require Authentication</Checkbox> */}
 
                     {!edit && (<Select
                       label="Duration"
