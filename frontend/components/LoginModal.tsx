@@ -32,6 +32,7 @@ const LoginModal: FC<LoginModalProps> = ({ isOpen, onOpenChange }) => {
             <ModalBody>
               <Auth
                 supabaseClient={supabase}
+                redirectTo={process.env.NODE_ENV === "production" ? "https://poll.dayo.dev" : "http://localhost:3000"}
                 appearance={{
                   theme: ThemeSupa,
                   style: {
